@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: task-system
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task_system_db
+    username: postgres
+    password: lithsamer
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+app:
+  security:
+    expirationAccessToken: 86400000
+    refreshAccessToken: 86400000
