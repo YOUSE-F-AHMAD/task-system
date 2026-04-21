@@ -1,6 +1,7 @@
 package com.example.task_system.security;
 
 import com.example.task_system.security.service.JwtService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -43,13 +45,16 @@ public class JwtFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String token;
         final String username;
+        final Claims claims;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")){
             filterChain.doFilter(request,response);
             return;
         }
+
         token = authHeader.substring(7);
         username = jwtService.extractUsername(token);
+        claims = jwtService.extractClaims(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null);
         final UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);

@@ -6,6 +6,7 @@ import com.example.task_system.auth.response.AuthLoginResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Getter
@@ -14,12 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
+    private final PasswordEncoder encoder;
+
     public Users toUser(AuthRegisterRequest registerRequest){
         return Users.builder()
                 .firstName(registerRequest.getFirstName())
                 .lastName(registerRequest.getLastName())
                 .email(registerRequest.getEmail())
-                .password(registerRequest.getPassword())
+                .password(encoder.encode(registerRequest.getPassword()))
                 .build();
     }
 }

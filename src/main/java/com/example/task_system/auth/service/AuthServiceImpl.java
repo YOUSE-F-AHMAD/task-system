@@ -3,13 +3,15 @@ package com.example.task_system.auth.service;
 import com.example.task_system.auth.request.AuthLoginRequest;
 import com.example.task_system.auth.request.AuthRegisterRequest;
 import com.example.task_system.auth.response.AuthLoginResponse;
+import com.example.task_system.exception.BusinessException;
+import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.security.service.JwtService;
 import com.example.task_system.user.Roles;
 import com.example.task_system.user.UserMapper;
 import com.example.task_system.user.Users;
 import com.example.task_system.user.repository.RolesRope;
 import com.example.task_system.user.repository.UserRepo;
-import jakarta.persistence.EntityNotFoundException;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -60,14 +61,32 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public AuthLoginResponse refreshToken(String refreshToken) {
+        final Claims claims = jwtService.extractClaims(refreshToken);
+        if ( !(jwtService.isTokenValid(refreshToken,claims.getSubject())) ) throw new BusinessException(
+                ErrorCode.REFRESH_TOKEN_NOT_VALID);
+
+        final String newToken = jwtService.generateAccessToken(claims.getSubject());
+        final String newRefreshToken = jwtService.generateRefreshToken(claims.getSubject());
+        return AuthLoginResponse.builder()
+                .accessToken(newToken)
+                .refreshToken(newRefreshToken)
+                .TokenType("Bearer")
+                .build();
+    }
+
+    @Override
     @Transactional
     public void register(AuthRegisterRequest request) {
 
     checkUserEmail(request.getEmail());
     checkPassword(request.getPassword(),request.getConfirmPassword());
 
-    final Roles userRole = this.rolesRope.findByName("USER_ROLE")
-            .orElseThrow(() -> new EntityNotFoundException("the role not found"));
+    final Roles userRole = Roles.builder()
+            .name("ADMEN")
+            .build();
+//            this.rolesRope.findByName("USER_ROLE")
+//            .orElseThrow(() -> new EntityNotFoundException("the role not found"));
 
     List<Roles> roles = new ArrayList<>();
     roles.add(userRole);
@@ -82,7 +101,6 @@ public class AuthServiceImpl implements AuthService {
     userRole.setUsersList(usersList);
 
     this.rolesRope.save(userRole);
-
     }
 
     private void checkUserEmail(String email) {

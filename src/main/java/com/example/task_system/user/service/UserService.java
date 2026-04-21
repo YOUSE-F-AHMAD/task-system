@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
 
-    void changePassWord(ChangePassWordRequest request, Integer userId) throws Exception;
+    void changePassWord(ChangePassWordRequest request, Long userId) throws Exception;
 
-    void registerUser(Users users);
+
 
 }

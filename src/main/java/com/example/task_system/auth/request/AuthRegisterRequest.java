@@ -21,5 +21,4 @@ public class AuthRegisterRequest {
 
     private String confirmPassword;
 
-
 }

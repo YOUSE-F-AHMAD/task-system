@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### The Token keys ###
+src/main/resources/keys.local-only/*.pem
