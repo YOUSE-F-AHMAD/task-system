@@ -1,8 +1,6 @@
 package com.example.task_system.user;
 
-import com.example.task_system.auth.request.AuthLoginRequest;
 import com.example.task_system.auth.request.AuthRegisterRequest;
-import com.example.task_system.auth.response.AuthLoginResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

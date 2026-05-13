@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 @Component
@@ -30,6 +31,13 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        final String pathUrl = request.getServletPath();
+        return Arrays.asList(SecurityConfig.url).contains(pathUrl);
+    }
+
+
+    @Override
     protected void doFilterInternal(
             @NonNull
             HttpServletRequest request,
@@ -38,14 +46,10 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull
             FilterChain filterChain) throws ServletException, IOException {
 
-        if (request.getServletPath().contains("/register")){
-            filterChain.doFilter(request,response);
-            return;
-        }
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String token;
         final String username;
-        final Claims claims;
+
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")){
             filterChain.doFilter(request,response);
@@ -54,11 +58,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
         token = authHeader.substring(7);
         username = jwtService.extractUsername(token);
-        claims = jwtService.extractClaims(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null);
         final UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-        if (this.jwtService.isTokenValid(token,username)){
+
+        if (this.jwtService.isTokenValid(token,userDetails) && jwtService.isAccessToken(token)){
+
             final UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,

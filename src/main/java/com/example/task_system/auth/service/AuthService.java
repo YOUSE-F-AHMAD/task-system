@@ -8,7 +8,7 @@ public interface AuthService {
 
     AuthLoginResponse login(AuthLoginRequest request);
 
-    AuthLoginResponse refreshToken(String token);
+    AuthLoginResponse refreshAccessToken(String token);
 
     void register(AuthRegisterRequest request);
 

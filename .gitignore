@@ -34,3 +34,5 @@ build/
 
 ### The Token keys ###
 src/main/resources/keys.local-only/*.pem
+### env ignor ###
+.env

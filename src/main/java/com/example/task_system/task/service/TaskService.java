@@ -7,7 +7,8 @@ import com.example.task_system.noteBook.repository.NoteBookRepository;
 import com.example.task_system.task.Tasks;
 import com.example.task_system.task.repository.SpecificationQuery;
 import com.example.task_system.task.repository.TaskRepository;
-import com.example.task_system.task.requiste.CreateTask;
+import com.example.task_system.task.request.CreateTask;
+import com.example.task_system.task.request.GetTasksByNoteBookIdRequest;
 import com.example.task_system.task.response.GetAllTask;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,12 +47,9 @@ public class TaskService {
     }
 
     // the int page and the size get value from front end
-    public Page<GetAllTask> getAllTasks(byte i){
-        int page = 0;
-        int size = 2;
-        boolean is = i == 1;
-        Pageable pageable = PageRequest.of(page,size, Sort.by("id").descending());
-        Specification<Tasks> spec = SpecificationQuery.filter(is);
+    public Page<GetAllTask> getAllTasksByNoteBookId(GetTasksByNoteBookIdRequest request){
+        Pageable pageable = PageRequest.of(request.getNumber(), request.getSize(), Sort.by("id").descending());
+        Specification<Tasks> spec = SpecificationQuery.filter(request.getNoteBookId());
         final Page<Tasks> tasks =  repository.findAll(spec,pageable);
 
         return toDtoTasks(tasks);

@@ -1,12 +1,19 @@
 package com.example.task_system.security.service;
 
+import com.example.task_system.auth.response.AuthLoginResponse;
+import com.example.task_system.exception.BusinessException;
+import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.security.KeyUtils;
+import com.example.task_system.user.service.UserService;
+import com.example.task_system.user.service.UserServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
@@ -15,22 +22,26 @@ import java.util.Date;
 import java.util.Map;
 
 @Service
-@Getter
 public class JwtService {
 
-    private static final String TOKEN_TYPE = "TOKEN_TYPE";
+    public static final String TOKEN_TYPE = "TOKEN_TYPE";
+
+
+    private final UserService userService;
 
     private final PrivateKey privateKey;
 
     private final PublicKey publicKey;
 
+
     @Value("${app.security.expirationAccessToken}")
     private  long expirationAccessToken;
 
-    @Value("${app.security.expirationAccessToken}")
-    private long refreshAccessToken;
+    @Value("${app.security.expirationRefreshToken}")
+    private long expirationRefreshToken;
 
-    public JwtService() throws Exception {
+    public JwtService(UserService userService) throws Exception {
+        this.userService = userService;
         this.privateKey = KeyUtils.loudPrivateKey("keys/local-only/private_key.pem");
         this.publicKey = KeyUtils.loudPublicKey("keys/local-only/public_key.pem");
     }
@@ -42,7 +53,7 @@ public class JwtService {
 
     public String generateRefreshToken(final String username){
         Map<String,Object> claim = Map.of(TOKEN_TYPE,"REFRESH_TOKEN");
-        return buildToken(username,claim,this.refreshAccessToken);
+        return buildToken(username,claim,this.expirationRefreshToken);
     }
 
     private String buildToken(String username, Map<String, Object> claim, long expirationAccessToken) {
@@ -55,11 +66,20 @@ public class JwtService {
                 .compact();
     }
 
-    public boolean isTokenValid(String token , String expectedUsername){
+    public boolean isTokenValid(String token , UserDetails userDetails){
         final String username = extractUsername(token);
 
-        return expectedUsername.equals(username) && !isTokenExpired(token);
+        return userDetails.getUsername().equals(username) && !isTokenExpired(token);
 
+    }
+    public boolean isRefreshToken(String token){
+        final String tokenType = extractClaims(token).get(TOKEN_TYPE).toString();
+        return "REFRESH_TOKEN".equals(tokenType);
+    }
+
+    public boolean isAccessToken(String token){
+        final String tokenType = extractClaims(token).get(TOKEN_TYPE).toString();
+        return "ACCESS_TOKEN".equals(tokenType);
     }
 
     public boolean isTokenExpired(String token) {
@@ -83,14 +103,22 @@ public class JwtService {
         }
     }
 
-    public String refreshAccessToken(final String refreshToken){
-        final Claims claims = extractClaims(refreshToken);
-        if (!"REFRESH_TOKEN".equals(claims.get(TOKEN_TYPE))){
-            throw new RuntimeException("Error TOKEN_TYPE");
-        }
-        return generateRefreshToken(claims.getSubject());
-    }
 
+    public AuthLoginResponse refreshAccessToken(final String refreshToken){
+        final Claims claims = extractClaims(refreshToken);
+        var userDetails = this.userService.loadUserByUsername(claims.getSubject());
+        if ( !(isTokenValid(refreshToken,userDetails))  || !isRefreshToken(refreshToken))
+            throw new BusinessException(
+                    ErrorCode.REFRESH_TOKEN_NOT_VALID);
+
+        final String newAccessToken = generateAccessToken(claims.getSubject());
+        final String newRefreshToken = generateRefreshToken(claims.getSubject());
+        return AuthLoginResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .TokenType("Bearer")
+                .build();
+    }
 
 
 }

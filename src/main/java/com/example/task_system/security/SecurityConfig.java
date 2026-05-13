@@ -17,13 +17,18 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
+    public static final String[] url = {
+            "/register",
+            "/login"
+    };
+
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
 
        return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/register","/login")
+                        auth.requestMatchers(url)
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()

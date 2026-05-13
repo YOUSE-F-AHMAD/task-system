@@ -1,5 +1,6 @@
 package com.example.task_system.task.response;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,14 +15,19 @@ import java.util.Date;
 @Builder
 public class GetAllTask {
 
+    @NotBlank(message = "VALIDATION.GET_ALL_TASK.NAME.NOT_BLANK")
     private String name;
 
+    @NotBlank(message = "VALIDATION.GET_ALL_TASK.DESCRIPTION.NOT_BLANK")
     private String description;
 
+    @NotBlank(message = "VALIDATION.GET_ALL_TASK.DATE_FOR_ENDED.NOT_BLANK")
     private LocalDate dateForEnded;
 
+    @NotBlank(message = "VALIDATION.GET_ALL_TASK.IS_COMPLETED.NOT_BLANK")
     private boolean isCompleted;
 
+    @NotBlank(message = "VALIDATION.GET_ALL_TASK.NOTEBOOK_ID.NOT_BLANK")
     private Long noteBookId;
 
 }

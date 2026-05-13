@@ -3,6 +3,8 @@ package com.example.task_system.noteBook;
 import com.example.task_system.entity.BaseEntity;
 import com.example.task_system.notes.Notes;
 import com.example.task_system.task.Tasks;
+import com.example.task_system.userNoteBook.NoteBookRole;
+import com.example.task_system.userNoteBook.UserNoteBook;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -27,10 +29,13 @@ public class NoteBook extends BaseEntity {
     private List<Tasks> task;
 
 
-    @OneToMany(
-            mappedBy = "note_book",
-            fetch = FetchType.LAZY
-    )
-    private List<Notes> notes;
+//    @OneToMany(
+//            mappedBy = "note_book",
+//            fetch = FetchType.LAZY
+//    )
+//    private List<Notes> notes;
+
+    @OneToMany(mappedBy = "noteBook")
+    private List<UserNoteBook> userNoteBooks;
 
 }

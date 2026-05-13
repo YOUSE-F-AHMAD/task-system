@@ -1,10 +1,12 @@
 spring:
   application:
     name: task-system
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://localhost:5432/task_system_db
-    username: postgres
-    password: lithsamer
+    url: jdbc:${URL_DATABASE}://${URL_HOST}:${URL_PORT}/${URL_DATABASE_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -17,5 +19,5 @@ spring:
         format_sql: true
 app:
   security:
-    expirationAccessToken: 86400000
-    refreshAccessToken: 86400000
+    expirationAccessToken: 900000
+    expirationRefreshToken: 86400000

@@ -2,6 +2,7 @@ package com.example.task_system.notes;
 
 import com.example.task_system.entity.BaseEntity;
 import com.example.task_system.noteBook.NoteBook;
+import com.example.task_system.task.Tasks;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -19,10 +20,14 @@ public class Notes extends BaseEntity {
 
     private String description;
 
-    @ManyToOne(
-            cascade = {CascadeType.MERGE,CascadeType.PERSIST}
-    )
-    @JoinColumn(name = "note_book_id")
-    private NoteBook note_book;
+    @ManyToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+    @JoinColumn(name = "task_id")
+    private Tasks task;
+
+//    @ManyToOne(
+//            cascade = {CascadeType.MERGE,CascadeType.PERSIST}
+//    )
+//    @JoinColumn(name = "note_book_id")
+//    private NoteBook note_book;
 
 }

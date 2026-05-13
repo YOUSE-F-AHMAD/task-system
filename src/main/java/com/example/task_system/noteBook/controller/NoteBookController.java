@@ -3,8 +3,9 @@ package com.example.task_system.noteBook.controller;
 import com.example.task_system.exception.BusinessException;
 import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.noteBook.NoteBook;
-import com.example.task_system.noteBook.requiste.ChangeNameOfNoteBook;
-import com.example.task_system.noteBook.requiste.CreateNoteBookRequest;
+import com.example.task_system.noteBook.request.ChangeNameOfNoteBook;
+import com.example.task_system.noteBook.request.CreateNoteBookRequest;
+import com.example.task_system.noteBook.request.SharNoteBookRequest;
 import com.example.task_system.noteBook.response.GetAllNoteBook;
 import com.example.task_system.noteBook.service.NoteBookService;
 import lombok.RequiredArgsConstructor;
@@ -20,18 +21,23 @@ public class NoteBookController {
 
     private final NoteBookService noteBookService;
 
-    @PostMapping("/create-note-book")
+    @PostMapping("/createNoteBook")
     public void createNewNoteBook(
-            @RequestBody CreateNoteBookRequest request
-            )
+            @RequestBody CreateNoteBookRequest request )
     {
-
-        final NoteBook noteBook_1 = this.noteBookService.createNewNoteBook(request.getName());
+        final NoteBook noteBook_1 = this.noteBookService.createNewNoteBook(request);
 
         if (noteBook_1 == null) throw new BusinessException(
                 ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION);
 
         else ResponseEntity.status(HttpStatus.CREATED);
+    }
+
+    @PostMapping("/sharNoteBook")
+    private void sharNoteBook(
+            @RequestBody SharNoteBookRequest request)
+    {
+        this.noteBookService.sharNoteBook(request);
     }
 
     @PostMapping("/changeNameOfNoteBook")
@@ -43,10 +49,12 @@ public class NoteBookController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/getAllNoteBooks")
-    public List<GetAllNoteBook> getAllNoteBooks()
+    @GetMapping("/getAllNoteBooksWithID/{id}")
+    public List<GetAllNoteBook> getAllNoteBooks(
+            @PathVariable("id") Long id
+    )
     {
-        return this.noteBookService.getNoteBookList();
+        return this.noteBookService.getNoteBookList(id);
     }
 
     @DeleteMapping("/deleteNoteBook/{id}")

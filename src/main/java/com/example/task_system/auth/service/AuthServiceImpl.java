@@ -3,15 +3,11 @@ package com.example.task_system.auth.service;
 import com.example.task_system.auth.request.AuthLoginRequest;
 import com.example.task_system.auth.request.AuthRegisterRequest;
 import com.example.task_system.auth.response.AuthLoginResponse;
-import com.example.task_system.exception.BusinessException;
-import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.security.service.JwtService;
-import com.example.task_system.user.Roles;
+import com.example.task_system.user.Role;
 import com.example.task_system.user.UserMapper;
 import com.example.task_system.user.Users;
-import com.example.task_system.user.repository.RolesRope;
-import com.example.task_system.user.repository.UserRepo;
-import io.jsonwebtoken.Claims;
+import com.example.task_system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -32,9 +27,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final JwtService jwtService;
 
-    private final UserRepo userRepository;
-
-    private final RolesRope rolesRope;
+    private final UserRepository userRepository;
 
     private final UserMapper userMapper;
 
@@ -61,18 +54,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthLoginResponse refreshToken(String refreshToken) {
-        final Claims claims = jwtService.extractClaims(refreshToken);
-        if ( !(jwtService.isTokenValid(refreshToken,claims.getSubject())) ) throw new BusinessException(
-                ErrorCode.REFRESH_TOKEN_NOT_VALID);
-
-        final String newToken = jwtService.generateAccessToken(claims.getSubject());
-        final String newRefreshToken = jwtService.generateRefreshToken(claims.getSubject());
-        return AuthLoginResponse.builder()
-                .accessToken(newToken)
-                .refreshToken(newRefreshToken)
-                .TokenType("Bearer")
-                .build();
+    public AuthLoginResponse refreshAccessToken(String refreshToken) {
+        return jwtService.refreshAccessToken(refreshToken);
     }
 
     @Override
@@ -82,26 +65,18 @@ public class AuthServiceImpl implements AuthService {
     checkUserEmail(request.getEmail());
     checkPassword(request.getPassword(),request.getConfirmPassword());
 
-    final Roles userRole = Roles.builder()
-            .name("ADMEN")
-            .build();
-//            this.rolesRope.findByName("USER_ROLE")
-//            .orElseThrow(() -> new EntityNotFoundException("the role not found"));
-
-    List<Roles> roles = new ArrayList<>();
-    roles.add(userRole);
-
-    final Users users = userMapper.toUser(request);
-    users.setRoles(roles);
-    log.debug("saved user {} ", users);
-    this.userRepository.save(users);
-
-    final List<Users> usersList = new ArrayList<>();
-    usersList.add(users);
-    userRole.setUsersList(usersList);
-
-    this.rolesRope.save(userRole);
+    if (Objects.equals(request.getEmail(), "yousef@gmail.com")){
+        final Users users = userMapper.toUser(request);
+        users.setRole(Role.ADMEN);
+        log.debug("saved user {} ", users);
+        this.userRepository.save(users);
+    }else{
+        final Users users = userMapper.toUser(request);
+        users.setRole(Role.USER);
+        log.debug("saved user {} ", users);
+        this.userRepository.save(users);
     }
+   }
 
     private void checkUserEmail(String email) {
      if(this.userRepository.existsByEmailIgnoreCase(email)){

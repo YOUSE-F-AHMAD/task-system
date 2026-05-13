@@ -3,7 +3,8 @@ package com.example.task_system.task.controller;
 import com.example.task_system.exception.BusinessException;
 import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.task.Tasks;
-import com.example.task_system.task.requiste.CreateTask;
+import com.example.task_system.task.request.CreateTask;
+import com.example.task_system.task.request.GetTasksByNoteBookIdRequest;
 import com.example.task_system.task.response.GetAllTask;
 import com.example.task_system.task.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +32,10 @@ public class TaskController {
        else ResponseEntity.status(HttpStatus.CREATED);
     }
 
-    @GetMapping("/getTaskIsNotCompleted/{i}")
+    @GetMapping("/getTaskByNoteBookId")
     public ResponseEntity<Page<GetAllTask>> getTasks(
-            @PathVariable("i") byte i
-    ){
-        return ResponseEntity.ok(this.taskService.getAllTasks(i));
+            @RequestBody GetTasksByNoteBookIdRequest request
+            ){
+        return ResponseEntity.ok(this.taskService.getAllTasksByNoteBookId(request));
     }
 }

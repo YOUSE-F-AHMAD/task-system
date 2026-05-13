@@ -1,6 +1,7 @@
 package com.example.task_system.user;
 
 import com.example.task_system.entity.BaseEntity;
+import com.example.task_system.userNoteBook.UserNoteBook;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -34,30 +35,16 @@ public class Users extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(
-            cascade = {CascadeType.PERSIST,CascadeType.MERGE},
-            fetch = FetchType.EAGER
-    )
-    @JoinTable(
-            name = "User_Role_Table",
-            joinColumns = {
-                    @JoinColumn(name = "USER_ID")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "ROLE_ID")
-            }
+    @OneToMany(mappedBy = "user")
+    private List<UserNoteBook> userNoteBooks;
 
-    )
-    private List<Roles> roles;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Override
     @NonNull
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (CollectionUtils.isEmpty(this.roles))  return List.of();
-        else  return this.roles.stream()
-                .map(roles -> new SimpleGrantedAuthority(roles.getName()))
-                .toList();
-
+       return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

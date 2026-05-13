@@ -3,7 +3,7 @@ package com.example.task_system.user.service;
 import com.example.task_system.exception.BusinessException;
 import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.user.Users;
-import com.example.task_system.user.repository.UserRepo;
+import com.example.task_system.user.repository.UserRepository;
 import com.example.task_system.user.request.ChangePassWordRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService{
 
     private final PasswordEncoder encoder;
-    private final UserRepo userRepository;
+    private final UserRepository userRepository;
 
     @Override
     @NonNull
