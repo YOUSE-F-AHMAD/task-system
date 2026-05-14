@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
 
     @Value("app.security.owner_email")
-    private final String ownerEmail;
+    private String ownerEmail;
 
 
     @Override

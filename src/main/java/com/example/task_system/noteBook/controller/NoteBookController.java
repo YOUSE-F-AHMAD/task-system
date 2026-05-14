@@ -22,7 +22,7 @@ public class NoteBookController {
     private final NoteBookService noteBookService;
 
     @PostMapping("/createNoteBook")
-    public void createNewNoteBook(
+    public ResponseEntity<NoteBook> createNewNoteBook(
             @RequestBody CreateNoteBookRequest request )
     {
         final NoteBook noteBook_1 = this.noteBookService.createNewNoteBook(request);
@@ -30,7 +30,7 @@ public class NoteBookController {
         if (noteBook_1 == null) throw new BusinessException(
                 ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION);
 
-        else ResponseEntity.status(HttpStatus.CREATED);
+        else return ResponseEntity.status(HttpStatus.CREATED).body(noteBook_1);
     }
 
     @PostMapping("/sharNoteBook")
