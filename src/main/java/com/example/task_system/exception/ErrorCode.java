@@ -15,8 +15,8 @@ public enum ErrorCode {
     NOTEBOOK_NOT_FOUND_EXCEPTION("NOTEBOOK_NOT_FOUND_EXCEPTION","noteBook not found exception ",NOT_FOUND),
     NOTE_NOT_FOUND_EXCEPTION("NOTE_NOT_FOUND_EXCEPTION","note not found exception ",NOT_FOUND),
     REFRESH_TOKEN_NOT_VALID("REFRESH_TOKEN_NOT_VALID","your refresh token is not valid",NOT_ACCEPTABLE),
-    FIELD_NAME_SHOULD_HAS_VALUE("FIELD_NAME_SHOULD_HAS_VALUE","please insert the noteBook's name", BAD_REQUEST)
-    ;
+    FIELD_NAME_SHOULD_HAS_VALUE("FIELD_NAME_SHOULD_HAS_VALUE","please insert the noteBook's name", BAD_REQUEST),
+    YOUR_EMAIL_IS_EXISTS("YOUR_EMAIL_IS_EXISTS", "your email is exists",EXPECTATION_FAILED );
 
     private final String code;
 

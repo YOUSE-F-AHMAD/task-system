@@ -29,10 +29,10 @@ public class TaskController {
                ErrorCode.TASK_NOT_FOUND_EXCEPTION
 
        );
-       else ResponseEntity.status(HttpStatus.CREATED);
+       else ResponseEntity.status(HttpStatus.CREATED).body(task);
     }
 
-    @GetMapping("/getTaskByNoteBookId")
+    @PostMapping("/getTaskByNoteBookId")
     public ResponseEntity<Page<GetAllTask>> getTasks(
             @RequestBody GetTasksByNoteBookIdRequest request
             ){

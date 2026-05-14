@@ -15,7 +15,6 @@ import com.example.task_system.userNoteBook.NoteBookRole;
 import com.example.task_system.userNoteBook.UserNoteBook;
 import com.example.task_system.userNoteBook.UserNoteBookRepository;
 import jakarta.transaction.Transactional;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 
-@Data
 @RequiredArgsConstructor
 @Service
 public class NoteBookService {
@@ -42,7 +40,7 @@ public class NoteBookService {
             throw new BusinessException(ErrorCode.FIELD_NAME_SHOULD_HAS_VALUE);
         }
         final Users user = this.userRepository.findById(request.getUserId())
-                .orElseThrow();
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION,request.getUserId()));
 
         final NoteBook noteBook = NoteBook.builder()
                 .name(request.getName())
@@ -58,17 +56,19 @@ public class NoteBookService {
 
     public void sharNoteBook(SharNoteBookRequest request){
         final NoteBook noteBook = this.repository
-                .findById(request.getNoteBookId()).orElseThrow();
+                .findById(request.getNoteBookId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION));
 
         final Users user = this.userRepository
-                .findById(request.getUserId()).orElseThrow();
+                .findById(request.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION,request.getUserId()));
 
         final UserNoteBook newUserNoteBook = UserNoteBook.builder()
                 .user(user)
                 .noteBook(noteBook)
                 .role(NoteBookRole.EDITOR)
                 .build();
-        ResponseEntity.ok(this.userNoteBookRepository.save(newUserNoteBook));
+        this.userNoteBookRepository.save(newUserNoteBook);
     }
 
     public List<GetAllNoteBook> getNoteBookList(Long id){

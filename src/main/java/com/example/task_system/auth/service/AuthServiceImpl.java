@@ -3,6 +3,8 @@ package com.example.task_system.auth.service;
 import com.example.task_system.auth.request.AuthLoginRequest;
 import com.example.task_system.auth.request.AuthRegisterRequest;
 import com.example.task_system.auth.response.AuthLoginResponse;
+import com.example.task_system.exception.BusinessException;
+import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.security.service.JwtService;
 import com.example.task_system.user.Role;
 import com.example.task_system.user.UserMapper;
@@ -11,6 +13,7 @@ import com.example.task_system.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     private final UserMapper userMapper;
+
+    @Value("app.security.owner_email")
+    private final String ownerEmail;
 
 
     @Override
@@ -65,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
     checkUserEmail(request.getEmail());
     checkPassword(request.getPassword(),request.getConfirmPassword());
 
-    if (Objects.equals(request.getEmail(), "yousef@gmail.com")){
+    if (Objects.equals(request.getEmail(),ownerEmail)){
         final Users users = userMapper.toUser(request);
         users.setRole(Role.ADMEN);
         log.debug("saved user {} ", users);
@@ -80,13 +86,13 @@ public class AuthServiceImpl implements AuthService {
 
     private void checkUserEmail(String email) {
      if(this.userRepository.existsByEmailIgnoreCase(email)){
-         throw new RuntimeException("your email is exists");
+         throw new BusinessException(ErrorCode.YOUR_EMAIL_IS_EXISTS);
      }
     }
 
     private void checkPassword(String password, String confirmPassword) {
         if (!password.equals(confirmPassword)){
-            throw new RuntimeException("your password does not same conformPassword");
+            throw new BusinessException(ErrorCode.UNCONFIRM_PASSWORD);
         }
     }
 }

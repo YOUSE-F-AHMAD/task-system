@@ -34,11 +34,11 @@ public class UserServiceImpl implements UserService{
                 .orElseThrow( ()-> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION)
                 );
 
-        if (!request.getNewPassword().equals(
+        if (!encoder.matches(request.getNewPassword(),
                 request.getConfirmNewPassword())) throw new BusinessException(ErrorCode.UNCONFIRM_PASSWORD);
 
-        else if (!Objects.equals(this.encoder.encode(request.getNewPassword()),
-                saveUser.getPassword())) throw new BusinessException(ErrorCode.ERROR_PASSWORD);
+        else if (!encoder.matches(saveUser.getPassword(),
+                encoder.encode(request.getNewPassword()))) throw new BusinessException(ErrorCode.ERROR_PASSWORD);
 
         else{
             saveUser.setPassword(this.encoder.encode(request.getNewPassword()));

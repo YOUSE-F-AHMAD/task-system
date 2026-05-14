@@ -4,7 +4,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:${URL_DATABASE}://${URL_HOST}:${URL_PORT}/${URL_DATABASE_NAME}
+    url: jdbc:postgresql://${URL_HOST}:${URL_PORT}/${URL_DATABASE_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -21,3 +21,4 @@ app:
   security:
     expirationAccessToken: 900000
     expirationRefreshToken: 86400000
+    owner_email: ${OWNER_EMAIL}
