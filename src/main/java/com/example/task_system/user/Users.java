@@ -29,6 +29,7 @@ public class Users extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String lastName;
 
+
     @Column(nullable = false , unique = true)
     private String email;
 

@@ -19,7 +19,10 @@ public class SecurityConfig {
 
     public static final String[] url = {
             "/register",
-            "/login"
+            "/login",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**"
     };
 
     @Bean
