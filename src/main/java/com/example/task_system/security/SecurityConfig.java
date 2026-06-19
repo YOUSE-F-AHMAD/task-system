@@ -18,8 +18,8 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     public static final String[] url = {
-            "/register",
-            "/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**"

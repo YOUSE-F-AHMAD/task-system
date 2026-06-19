@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
 
-    @Value("app.security.owner_email")
+    @Value("${app.security.owner_email}")
     private String ownerEmail;
 
 
@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
 
     if (Objects.equals(request.getEmail(),ownerEmail)){
         final Users users = userMapper.toUser(request);
-        users.setRole(Role.ADMEN);
+        users.setRole(Role.ADMIN);
         log.debug("saved user {} ", users);
         this.userRepository.save(users);
     }else{
@@ -83,6 +83,8 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository.save(users);
     }
    }
+
+
 
     private void checkUserEmail(String email) {
      if(this.userRepository.existsByEmailIgnoreCase(email)){
@@ -95,4 +97,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.UNCONFIRM_PASSWORD);
         }
     }
+
+
 }

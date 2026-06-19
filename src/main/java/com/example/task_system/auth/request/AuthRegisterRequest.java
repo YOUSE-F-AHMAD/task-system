@@ -17,13 +17,7 @@ public class AuthRegisterRequest {
     @NotBlank(message = "VALIDATION.REGISTER.FIRSTNAME.NOT_BLANK")
     @Size(min = 2, max = 50, message = "VALIDATION.REGISTER.FIRSTNAME.NOT_BLANK")
     @Pattern(regexp = "^[\\p{L} '-]+$", message = "VALIDATION.REGISTER.FIRSTNAME.PATTERN")
-    private String firstName;
-
-
-    @NotBlank(message = "VALIDATION.REGISTER.LASTNAME.NOT_BLANK")
-    @Size(min = 2, max = 50, message = "VALIDATION.REGISTER.LASTNAME.NOT_BLANK")
-    @Pattern(regexp = "^[\\p{L} '-]+$", message = "VALIDATION.REGISTER.LASTNAME.PATTERN")
-    private String lastName;
+    private String identifier;
 
     @NotBlank(message = "VALIDATION.REGISTER.EMAIL.NOT_BLANK")
     @Email

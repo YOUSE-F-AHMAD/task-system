@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChangeNameOfNoteBook {
 
-    @NotBlank(message = "VALIDATION.CHANGE_NAME_OF_NOTEBOOK.NOTEBOOK.OldNAME.NOT_BLANK")
-    private String oldName;
-
     @NotBlank(message = "VALIDATION.CHANGE_NAME_OF_NOTEBOOK.NOTEBOOK.NewNAME.NOT_BLANK")
     private String newName;
 }

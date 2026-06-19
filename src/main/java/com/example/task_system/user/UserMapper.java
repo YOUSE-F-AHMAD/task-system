@@ -17,8 +17,7 @@ public class UserMapper {
 
     public Users toUser(AuthRegisterRequest registerRequest){
         return Users.builder()
-                .firstName(registerRequest.getFirstName())
-                .lastName(registerRequest.getLastName())
+                .identifier(registerRequest.getIdentifier())
                 .email(registerRequest.getEmail())
                 .password(encoder.encode(registerRequest.getPassword()))
                 .build();

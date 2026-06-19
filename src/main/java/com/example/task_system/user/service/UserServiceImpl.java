@@ -12,8 +12,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService{
@@ -29,28 +27,23 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void changePassWord(ChangePassWordRequest request, Long userId) throws Exception {
-        final Users saveUser = userRepository.findById(userId)
+    public String changePassWord(Long id ,ChangePassWordRequest request){
+        final Users saveUser = userRepository.findById(id)
                 .orElseThrow( ()-> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION)
                 );
 
-        if (!encoder.matches(request.getNewPassword(),
-                request.getConfirmNewPassword())) throw new BusinessException(ErrorCode.UNCONFIRM_PASSWORD);
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword()))
+            throw new BusinessException(ErrorCode.UNCONFIRM_PASSWORD);
 
-        else if (!encoder.matches(saveUser.getPassword(),
-                encoder.encode(request.getNewPassword()))) throw new BusinessException(ErrorCode.ERROR_PASSWORD);
+        else if (!encoder.matches(request.getNewPassword(), saveUser.getPassword()))
+            throw new BusinessException(ErrorCode.ERROR_PASSWORD);
 
-        else{
+        else
+        {
             saveUser.setPassword(this.encoder.encode(request.getNewPassword()));
             userRepository.save(saveUser);
+            return "Password changed successfully";
         }
     }
 
-
-//    @Override
-//    public void registerUser(Users user) {
-//        String encodedPassword = encoder.encode(user.getPassword());
-//        user.setPassword(encodedPassword);
-//        userRepository.save(user);
-//    }
 }

@@ -1,7 +1,6 @@
 package com.example.task_system.config;
 
 import com.example.task_system.user.Users;
-import lombok.NonNull;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

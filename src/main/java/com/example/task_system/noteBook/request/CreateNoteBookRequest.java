@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateNoteBookRequest {
 
-    @NotBlank(message = "VALIDATION.CREATE_NOTEBOOK_REQUEST.USERID.NOT_BLANK")
-    private Long userId;
-
     @NotBlank(message = "VALIDATION.CREATE_NOTEBOOK_REQUEST.NOTEBOOK.NAME.NOT_BLANK")
     private String name;
 

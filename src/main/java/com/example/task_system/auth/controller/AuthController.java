@@ -3,7 +3,7 @@ package com.example.task_system.auth.controller;
 import com.example.task_system.auth.request.AuthLoginRequest;
 import com.example.task_system.auth.request.AuthRegisterRequest;
 import com.example.task_system.auth.response.AuthLoginResponse;
-import com.example.task_system.auth.service.AuthServiceImpl;
+import com.example.task_system.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthServiceImpl authService;
+    private final AuthService authService;
 
-    @PostMapping("/login")
+    @PostMapping("/api/v1/auth/login")
     public ResponseEntity<AuthLoginResponse> login(
             @RequestBody AuthLoginRequest request
             )
@@ -25,7 +25,7 @@ public class AuthController {
         return ResponseEntity.ok(this.authService.login(request));
     }
 
-    @PostMapping("/register")
+    @PostMapping("/api/v1/auth/register")
     public ResponseEntity<Void> register(
            @RequestBody AuthRegisterRequest request
            )
@@ -34,7 +34,7 @@ public class AuthController {
            return ResponseEntity.status(HttpStatus.CREATED).build();
      }
 
-    @PostMapping("/refreshAccessToken")
+    @PostMapping("/api/v1/auth/token/refresh")
     public ResponseEntity<AuthLoginResponse> refreshToken(
             @RequestBody String refreshToken
             )

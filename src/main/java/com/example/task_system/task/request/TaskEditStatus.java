@@ -1,4 +1,4 @@
-package com.example.task_system.noteBook.request;
+package com.example.task_system.task.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SharNoteBookRequest {
-    @NotBlank(message = "VALIDATION.SHAR_NOTE_BOOK_REQUEST.IDENTIFIER.NOT_BLANK")
-    private String identifier;
+public class TaskEditStatus {
 
+    @NotBlank(message = "VALIDATION.TASK_EDIT_STATUS.STATUS.NOT_BLANK")
+    private String status;
 }

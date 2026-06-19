@@ -6,11 +6,14 @@ import com.example.task_system.noteBook.NoteBook;
 import com.example.task_system.noteBook.request.ChangeNameOfNoteBook;
 import com.example.task_system.noteBook.request.CreateNoteBookRequest;
 import com.example.task_system.noteBook.request.SharNoteBookRequest;
-import com.example.task_system.noteBook.response.GetAllNoteBook;
+import com.example.task_system.noteBook.response.FriendInfoResponse;
+import com.example.task_system.noteBook.response.NotebooksByUserId;
 import com.example.task_system.noteBook.service.NoteBookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,50 +24,68 @@ public class NoteBookController {
 
     private final NoteBookService noteBookService;
 
-    @PostMapping("/createNoteBook")
+    @PostMapping("/api/v1/notebooks")
     public ResponseEntity<NoteBook> createNewNoteBook(
-            @RequestBody CreateNoteBookRequest request )
+            @RequestBody CreateNoteBookRequest request,
+            @AuthenticationPrincipal UserDetails currentUser
+    )
     {
-        final NoteBook noteBook_1 = this.noteBookService.createNewNoteBook(request);
-
+        final NoteBook noteBook_1 = this.noteBookService.createNewNoteBook(currentUser,request);
         if (noteBook_1 == null) throw new BusinessException(
                 ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION);
 
         else return ResponseEntity.status(HttpStatus.CREATED).body(noteBook_1);
     }
 
-    @PostMapping("/sharNoteBook")
-    private void sharNoteBook(
-            @RequestBody SharNoteBookRequest request)
+    @GetMapping("/api/v1/notebooks")
+    public ResponseEntity<List<NotebooksByUserId>> getAllNoteBooks(
+            @AuthenticationPrincipal UserDetails userDetails
+    )
     {
-        this.noteBookService.sharNoteBook(request);
+        return ResponseEntity.ok(this.noteBookService.notebooksByUserId(userDetails));
     }
 
-    @PostMapping("/changeNameOfNoteBook")
-    public ResponseEntity<Void> changeNoteBookName(
-            @RequestBody ChangeNameOfNoteBook change
+
+    @PutMapping("/api/v1/notebooks/{notebookId}")
+    public ResponseEntity<NoteBook> changeNoteBookName(
+            @PathVariable("notebookId") Long notebookId,
+            @RequestBody ChangeNameOfNoteBook change,
+            @AuthenticationPrincipal UserDetails userDetails
             )
     {
-        this.noteBookService.changeNoteBookName(change);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.ok(this.noteBookService.changeNoteBookName(userDetails,notebookId,change));
     }
 
-    @GetMapping("/getAllNoteBooksWithID/{id}")
-    public List<GetAllNoteBook> getAllNoteBooks(
-            @PathVariable("id") Long id
+    @PostMapping("/api/v1/notebooks/{notebookId}/member")
+    public ResponseEntity<FriendInfoResponse> shareNoteBook(
+            @PathVariable("notebookId") Long notebookId,
+            @RequestBody SharNoteBookRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
     )
     {
-        return this.noteBookService.getNoteBookList(id);
+
+        return ResponseEntity.ok(this.noteBookService
+                .shareNoteBook(notebookId, userDetails,request));
     }
 
-    @DeleteMapping("/deleteNoteBook/{id}")
-    public void deleteNoteBook(
-            @RequestParam Long id
+    @DeleteMapping("/api/v1/notebooks/{notebookId}")
+    public ResponseEntity<Void> deleteNoteBook(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("notebookId") Long id
     )
     {
-        this.noteBookService.removeNoteBookById(id);
-        ResponseEntity.status(HttpStatus.ACCEPTED);
+        this.noteBookService.removeNoteBookById(userDetails,id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @DeleteMapping("/api/v1/notebooks/{notebook_id}/member/{identifier}")
+    public ResponseEntity<Void> notebooksDeleteMember(
+            @PathVariable("notebook_id") Long notebookId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("identifier") String identifier
+    ) {
 
+        noteBookService.removeMemberFromNoteBook(userDetails,notebookId,identifier);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

@@ -8,7 +8,6 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,15 +19,12 @@ import java.util.List;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "Users_T")
+@Table(name = "_user")
 public class Users extends BaseEntity implements UserDetails {
 
-    @Column(nullable = false)
-    private String firstName;
 
-    @Column(nullable = false)
-    private String lastName;
-
+    @Column(nullable = false,unique = true)
+    private String identifier;
 
     @Column(nullable = false , unique = true)
     private String email;

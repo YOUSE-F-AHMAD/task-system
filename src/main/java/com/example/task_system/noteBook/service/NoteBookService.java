@@ -3,12 +3,15 @@ package com.example.task_system.noteBook.service;
 import com.example.task_system.exception.BusinessException;
 import com.example.task_system.exception.ErrorCode;
 import com.example.task_system.noteBook.NoteBook;
+import com.example.task_system.noteBook.mapper.NotebookMapper;
 import com.example.task_system.noteBook.repository.NoteBookRepository;
 import com.example.task_system.noteBook.repository.SpecificationQueryNoteBook;
 import com.example.task_system.noteBook.request.ChangeNameOfNoteBook;
 import com.example.task_system.noteBook.request.CreateNoteBookRequest;
 import com.example.task_system.noteBook.request.SharNoteBookRequest;
-import com.example.task_system.noteBook.response.GetAllNoteBook;
+import com.example.task_system.noteBook.response.FriendInfoResponse;
+import com.example.task_system.noteBook.response.NoteBookDto;
+import com.example.task_system.noteBook.response.NotebooksByUserId;
 import com.example.task_system.user.Users;
 import com.example.task_system.user.repository.UserRepository;
 import com.example.task_system.userNoteBook.NoteBookRole;
@@ -17,7 +20,7 @@ import com.example.task_system.userNoteBook.UserNoteBookRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,16 +34,21 @@ public class NoteBookService {
 
     private final UserRepository userRepository;
 
+    private final NotebookMapper notebookMapper;
+
     private final UserNoteBookRepository userNoteBookRepository;
 
     @Transactional
-    public NoteBook createNewNoteBook(CreateNoteBookRequest request)
+    public NoteBook createNewNoteBook(
+            UserDetails userDetails,
+            CreateNoteBookRequest request)
     {
         if (request.getName() == null){
             throw new BusinessException(ErrorCode.FIELD_NAME_SHOULD_HAS_VALUE);
         }
-        final Users user = this.userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION,request.getUserId()));
+
+        final Users user = this.userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION, userDetails.getUsername()));
 
         final NoteBook noteBook = NoteBook.builder()
                 .name(request.getName())
@@ -54,47 +62,113 @@ public class NoteBookService {
         return this.repository.save(noteBook);
     }
 
-    public void sharNoteBook(SharNoteBookRequest request){
-        final NoteBook noteBook = this.repository
-                .findById(request.getNoteBookId())
+    @Transactional
+    public FriendInfoResponse shareNoteBook(Long noteBookId, UserDetails userDetails, SharNoteBookRequest request)
+    {
+        final String userEmail = userDetails.getUsername();
+        final Users currentUser = this.userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION, userEmail));
+
+        final Users user = this.userRepository.findByIdentifierOrEmail(
+                request.getIdentifier()
+                        ,request.getIdentifier() )
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION, userEmail));
+
+        final NoteBook noteBook = this.repository.findById(noteBookId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION));
 
-        final Users user = this.userRepository
-                .findById(request.getUserId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION,request.getUserId()));
-
-        final UserNoteBook newUserNoteBook = UserNoteBook.builder()
+        if (!noteBook.getCreatedBy().equals(currentUser.getId()))
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        final UserNoteBook userNoteBook = UserNoteBook.builder()
                 .user(user)
                 .noteBook(noteBook)
-                .role(NoteBookRole.EDITOR)
+                .role(NoteBookRole.USER)
                 .build();
-        this.userNoteBookRepository.save(newUserNoteBook);
+        this.userNoteBookRepository.save(userNoteBook);
+
+        return FriendInfoResponse.builder()
+                .noteBookName(noteBook.getName())
+                .friendUserName(user.getUsername())
+                .createdAt(userNoteBook.getCreatedDate())
+                .build();
     }
 
-    public List<GetAllNoteBook> getNoteBookList(Long id){
-        Specification<UserNoteBook> spec = SpecificationQueryNoteBook.filter(id);
+    @Transactional
+    public List<NotebooksByUserId> notebooksByUserId(UserDetails userDetails)
+    {
+        final String userEmail = userDetails.getUsername();
+        final Users user = this.userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+        final Long id = user.getId();
+        Specification<UserNoteBook> spec = SpecificationQueryNoteBook.userNoteBookSpecByUserId(id);
         final List<UserNoteBook> userNoteBooks = this.userNoteBookRepository.findAll(spec);
-        return  toDtoNoteBook(userNoteBooks);
+        return  notebookMapper.toDtoNoteBooks(userNoteBooks);
     }
 
-    private List<GetAllNoteBook> toDtoNoteBook(List<UserNoteBook> userNoteBooks) {
 
-        return userNoteBooks.stream()
-                .map(noteBook ->
-                        new GetAllNoteBook(noteBook.getNoteBook().getName()))
-                .toList();
+    @Transactional
+    public NoteBookDto changeNoteBookName(
+            UserDetails userDetails ,
+            Long notebookId ,
+            ChangeNameOfNoteBook change)
+    {
+        final NoteBook noteBook = this.repository.findById(notebookId)
+                .orElseThrow( ()-> new BusinessException(ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION));
+        final Users user = this.userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+        final UserNoteBook userNoteBook = this.userNoteBookRepository.findByUserAndNoteBook(user, noteBook)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+
+        if (!userNoteBook.getRole().equals(NoteBookRole.OWNER))
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+
+        noteBook.setName(change.getNewName());
+        this.repository.save(noteBook);
+        return  notebookMapper.toDtoNoteBook(noteBook);
     }
 
-    public void changeNoteBookName(ChangeNameOfNoteBook change){
-        final NoteBook oldNoteBook = this.repository.findByName(change.getOldName())
-                .orElseThrow();
-        oldNoteBook.setName(change.getNewName());
-        ResponseEntity.ok(this.repository.save(oldNoteBook));
+    @Transactional
+    public void removeNoteBookById(UserDetails userDetails,Long notebookId)
+    {
+
+        final String userEmail = userDetails.getUsername();
+        final Users user = this.userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+
+        final NoteBook noteBook = this.repository.findById(notebookId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION));
+
+        final UserNoteBook userNoteBook = this.userNoteBookRepository.findByUserAndNoteBook(user,noteBook)
+                .orElseThrow(()-> new BusinessException(ErrorCode.UNAUTHORIZED));
+
+        if (!userNoteBook.getRole().equals(NoteBookRole.OWNER))
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+
+        this.repository.deleteById(notebookId);
     }
 
-    public void removeNoteBookById(Long id){
-        if (this.repository.existsById(id)){
-            this.repository.deleteById(id);
-        }
+    public void removeMemberFromNoteBook(
+            UserDetails userDetails,
+            Long notebookId,
+            String identifier
+        )
+    {
+
+        final Users user = this.userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+
+        final NoteBook noteBook = this.repository.findById(notebookId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.NOTEBOOK_NOT_FOUND_EXCEPTION));
+
+        final UserNoteBook userNoteBook = this.userNoteBookRepository.findByUserAndNoteBook(user,noteBook)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+
+        if (!(userNoteBook.getRole().equals(NoteBookRole.OWNER)))
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+
+        final Users userWillRemove = this.userRepository.findByEmailIgnoreCase(identifier)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+
+        this.userNoteBookRepository.deleteByUserAndNoteBook(userWillRemove,noteBook);
     }
 }

@@ -19,21 +19,19 @@ import java.util.List;
 @Entity
 public class Tasks extends BaseEntity {
 
-    private String name;
+    private String title;
 
-    private LocalDate dateForEnded;
+    private LocalDate dueDate;
 
-    private boolean isCompleted;
+    private String status;
 
-    private String description;
+    private String content;
 
-    @ManyToOne(
-            cascade = {CascadeType.PERSIST}
-    )
+    @ManyToOne
     @JoinColumn(name = "note_book_id")
     private NoteBook noteBook;
 
-    @OneToMany(mappedBy = "task")
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notes> note;
 
 
